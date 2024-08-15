@@ -12,7 +12,7 @@ export class OrderRepository implements OrderInterface {
 
   async findById(id: string): Promise<OrderEntity | null> {
     const objectId = new ObjectId(id); 
-    return this.orderRepo.findOne({ where: { id: objectId } });
+    return this.orderRepo.findOne({ where: { _id: objectId } });
   }
 
   async findAll(): Promise<OrderEntity[]> {
