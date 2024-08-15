@@ -1,5 +1,8 @@
 import { Injectable, Inject, NotFoundException } from '@nestjs/common';
-import { OrderInterface, OrderInterfaceToken } from './interface/order.interface';
+import {
+  OrderInterface,
+  OrderInterfaceToken,
+} from './interface/order.interface';
 import { OrderEntity } from './entity/order.entity';
 import { CreateOrderDTO, UpdateOrderDTO } from './dto/order.dto';
 import { Redis } from 'ioredis';
@@ -22,14 +25,20 @@ export class OrderService {
 
   async create(createOrderDto: CreateOrderDTO): Promise<OrderEntity> {
     const order = new OrderEntity();
-    // Populate the order entity with DTO data
+    let totalPrice = 0;
     order.items = createOrderDto.items;
-    order.totalPrice = createOrderDto.totalPrice;
+    for (const item of order.items) {
+      totalPrice += item.price * item.quantity;
+    }
+    order.totalPrice = parseFloat(totalPrice.toFixed(2));
     order.customerInfo = createOrderDto.customerInfo;
     return this.orderRepo.create(order);
   }
 
-  async update(id: string, updateOrderDto: UpdateOrderDTO): Promise<OrderEntity | null> {
+  async update(
+    id: string,
+    updateOrderDto: UpdateOrderDTO,
+  ): Promise<OrderEntity | null> {
     const existingOrder = await this.orderRepo.findById(id);
     if (!existingOrder) {
       throw new NotFoundException(`Order with ID ${id} not found`);
@@ -37,9 +46,11 @@ export class OrderService {
     // Update fields as necessary
     if (updateOrderDto.items) {
       existingOrder.items = updateOrderDto.items;
-    }
-    if (updateOrderDto.totalPrice) {
-      existingOrder.totalPrice = updateOrderDto.totalPrice;
+      let totalPrice = 0;
+      for (const item of existingOrder.items) {
+        totalPrice += item.price * item.quantity;
+      }
+      existingOrder.totalPrice = parseFloat(totalPrice.toFixed(2));
     }
     if (updateOrderDto.customerInfo) {
       existingOrder.customerInfo = updateOrderDto.customerInfo;
@@ -53,10 +64,16 @@ export class OrderService {
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
 
-    const numberOfOrdersToday = await this.getNumberOfOrdersToday(today, tomorrow);
+    const numberOfOrdersToday = await this.getNumberOfOrdersToday(
+      today,
+      tomorrow,
+    );
     // check redis
     const cachedReport = await this.redis.get(today.toString());
-    if(cachedReport && JSON.parse(cachedReport).numberOfOrders === numberOfOrdersToday) {
+    if (
+      cachedReport &&
+      JSON.parse(cachedReport).numberOfOrders === numberOfOrdersToday
+    ) {
       return JSON.parse(cachedReport);
     }
 
@@ -86,9 +103,16 @@ export class OrderService {
       {
         $group: {
           _id: '$topSellingItems.name',
-          price : {$first: '$topSellingItems.price'},
+          price: { $first: '$topSellingItems.price' },
           count: { $sum: '$topSellingItems.quantity' },
-          revenue: { $sum: { $multiply: ['$topSellingItems.quantity', '$topSellingItems.price'] } },
+          revenue: {
+            $sum: {
+              $multiply: [
+                '$topSellingItems.quantity',
+                '$topSellingItems.price',
+              ],
+            },
+          },
           totalRevenue: { $first: '$totalRevenue' },
           numberOfOrders: { $first: '$numberOfOrders' },
         },
@@ -107,7 +131,7 @@ export class OrderService {
           revenue: 1,
           totalRevenue: 1,
           numberOfOrders: 1,
-          price: 1
+          price: 1,
         },
       },
       {
@@ -136,7 +160,11 @@ export class OrderService {
     ];
 
     const result = await this.orderRepo.aggregate(pipeline);
-    const dailySalesReport = result[0] || { totalRevenue: 0, numberOfOrders: 0, topSellingItems: [] };
+    const dailySalesReport = result[0] || {
+      totalRevenue: 0,
+      numberOfOrders: 0,
+      topSellingItems: [],
+    };
     // chache to redis
     await this.redis.set(today.toString(), JSON.stringify(dailySalesReport));
     return dailySalesReport;
@@ -153,10 +181,10 @@ export class OrderService {
         },
       },
       {
-        $count: "numberOfOrders"
-      }
+        $count: 'numberOfOrders',
+      },
     ];
-  
+
     const result = await this.orderRepo.aggregate(pipeline);
     return result[0]?.numberOfOrders || 0;
   }

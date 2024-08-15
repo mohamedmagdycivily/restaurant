@@ -1,4 +1,10 @@
-import { Entity, ObjectIdColumn, ObjectId, Column, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  ObjectIdColumn,
+  ObjectId,
+  Column,
+  CreateDateColumn,
+} from 'typeorm';
 
 @Entity()
 export class OrderEntity {
@@ -7,12 +13,12 @@ export class OrderEntity {
 
   @Column()
   items: {
-    name: string; 
+    name: string;
     quantity: number;
     price: number;
   }[];
 
-  @Column('Number')
+  @Column('number')
   totalPrice: number;
 
   @Column()

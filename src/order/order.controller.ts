@@ -18,12 +18,17 @@ export class OrderController {
   }
 
   @Post()
-  async createOrder(@Body() createOrderDto: CreateOrderDTO): Promise<OrderEntity> {
+  async createOrder(
+    @Body() createOrderDto: CreateOrderDTO,
+  ): Promise<OrderEntity> {
     return this.orderService.create(createOrderDto);
   }
 
   @Put(':id')
-  async updateOrder(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDTO): Promise<OrderEntity | null> {
+  async updateOrder(
+    @Param('id') id: string,
+    @Body() updateOrderDto: UpdateOrderDTO,
+  ): Promise<OrderEntity | null> {
     return this.orderService.update(id, updateOrderDto);
   }
 

@@ -1,14 +1,16 @@
-import { IsArray, IsDecimal, IsNotEmpty, IsObject, IsString, ValidateNested, IsInt, IsOptional } from 'class-validator';
+import { IsArray, IsString, ValidateNested, IsInt, IsOptional, IsNumber, IsPositive } from 'class-validator';
 import { Type } from 'class-transformer';
 
 class ItemDTO {
   @IsString()
   name: string;
 
-  @IsInt()
+  @IsNumber()
+  @IsPositive()
   price: number;
 
   @IsInt()
+  @IsPositive()
   quantity: number;
 }
 
@@ -31,8 +33,9 @@ export class CreateOrderDTO {
   @IsArray()
   items: ItemDTO[];
 
-  @IsInt()
-  totalPrice: number;
+  // @IsNumber()
+  // @IsPositive()
+  // totalPrice: number;
 
   @ValidateNested()
   @Type(() => CustomerInfoDTO)
@@ -44,8 +47,8 @@ class UpdateItemDTO {
   @IsOptional()
   name: string;
 
-  @IsDecimal()
-  @IsOptional()
+  @IsNumber()
+  @IsPositive()
   price: number;
 
   @IsInt()
@@ -73,10 +76,6 @@ export class UpdateOrderDTO {
   @IsArray()
   @IsOptional()
   items?: UpdateItemDTO[];
-
-  @IsDecimal()
-  @IsOptional()
-  totalPrice?: number;
 
   @ValidateNested()
   @Type(() => UpdateCustomerInfoDTO)
