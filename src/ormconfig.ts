@@ -6,9 +6,9 @@ const keys = require('./Config/ENV/keys');
 export const typeOrmAsyncConfig: TypeOrmModuleAsyncOptions = {
   useFactory: async (): Promise<TypeOrmModuleOptions> => {
     return {
-      ...keys.dbConnection,
+      "url": process.env.MONGO_URL || keys.dbConnection.url,
       type: 'mongodb',
-      synchronize: false,
+      synchronize: true,
       logging: true,
       autoLoadEntities: true,
       useUnifiedTopology: true, 
@@ -19,9 +19,9 @@ export const typeOrmAsyncConfig: TypeOrmModuleAsyncOptions = {
 
 export function typeOrmConfig() {
   return {
-    ...keys.dbConnection,
+    "url": process.env.MONGO_URL || keys.dbConnection.url,
     type: 'mongodb',
-    synchronize: false,
+    synchronize: true,
     logging: true,
     autoLoadEntities: true,
     useUnifiedTopology: true, 
