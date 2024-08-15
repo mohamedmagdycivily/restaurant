@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: nestjs-app
+    restart: always
+    ports:
+      - '3000:3000'
+    depends_on:
+      - mongo
+      - redis
+    environment:
+      MONGO_URL: mongodb://mongo:27017/restaurant  # Use default MongoDB internal port
+      REDIS_HOST: redis
+      REDIS_PORT: 6379  # Use Redis internal port
+    networks:
+      - backend
+
+  mongo:
+    image: mongo:6.0
+    container_name: mongo
+    restart: always
+    ports:
+      - '27018:27017'
+    networks:
+      - backend
+    volumes:
+      - mongo-data:/data/db
+
+  redis:
+    image: redis:7.0
+    container_name: redis
+    restart: always
+    ports:
+      - '6380:6379'  # Host port 6380 mapped to container port 6379
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  mongo-data:
