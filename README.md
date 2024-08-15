@@ -13,3 +13,7 @@ docker compose up --build
 ```sh
 http://localhost:3000/doc
 ```
+
+# TODO:
+
+- add pagination to getting orders api
